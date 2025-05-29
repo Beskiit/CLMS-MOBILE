@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFF"
+    android:fitsSystemWindows="true"
+    tools:context=".HomePageActivity">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="40dp"
+            android:src="@drawable/clmslogo"
+            android:contentDescription="Logo" />
+    </LinearLayout>
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <!-- Lab A Button -->
+        <LinearLayout
+            android:id="@+id/labAButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bordered_button"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/computers"
+                android:tint="#8BB7F0"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LAB A"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222"/>
+        </LinearLayout>
+
+        <!-- Lab B Button -->
+        <LinearLayout
+            android:id="@+id/labBButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bordered_button"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/computers"
+                android:tint="#8BB7F0"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LAB B"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222"/>
+        </LinearLayout>
+
+        <!-- Lab C Button -->
+        <LinearLayout
+            android:id="@+id/labCButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bordered_button"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/computers"
+                android:tint="#8BB7F0"
+                android:layout_marginEnd="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LAB C"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222"/>
+        </LinearLayout>
+
+        <!-- Log in History Button -->
+        <LinearLayout
+            android:id="@+id/loginHistoryButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bordered_button"
+            android:layout_marginBottom="16dp"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LOG IN HISTORY"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/homeIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/home"
+            android:tint="@color/white"
+            android:contentDescription="Home" />
+
+        <ImageView
+            android:id="@+id/issueIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageissue"
+            android:tint="@color/white"
+            android:contentDescription="History" />
+
+        <ImageView
+            android:id="@+id/profileIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageprofile"
+            android:tint="@color/white"
+            android:contentDescription="Profile" />
+    </LinearLayout>
+</LinearLayout>

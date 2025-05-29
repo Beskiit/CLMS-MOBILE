@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFF"
+    android:fitsSystemWindows="true">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="40dp"
+            android:src="@drawable/clmslogo"
+            android:contentDescription="Logo" />
+    </LinearLayout>
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add New Issue"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#0B7AC8"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Computer Lab Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Computer Lab:"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp"/>
+
+        <Spinner
+            android:id="@+id/labSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="32dp"
+            android:background="@drawable/custom_spinner_background"
+            android:popupBackground="@android:color/white"
+            android:dropDownWidth="match_parent"
+            android:spinnerMode="dropdown"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- PC Number Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PC Number:"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp"/>
+
+        <Spinner
+            android:id="@+id/pcSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginHorizontal="32dp"
+            android:background="@drawable/custom_spinner_background"
+            android:popupBackground="@android:color/white"
+            android:dropDownWidth="match_parent"
+            android:spinnerMode="dropdown"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Issue Type Field -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Issue Type:"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp"/>
+
+        <EditText
+            android:id="@+id/issueTypeInput"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:background="@drawable/bordered_button"
+            android:padding="8dp"
+            android:textColor="@color/black"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Add Issue Button -->
+        <Button
+            android:id="@+id/addIssueButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Issue"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#0B7AC8"
+            android:padding="12dp"/>
+
+    </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/homeIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/home"
+            android:tint="@color/white"
+            android:contentDescription="Home" />
+
+        <ImageView
+            android:id="@+id/issueIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageissue"
+            android:tint="@color/white"
+            android:contentDescription="Issue" />
+
+        <ImageView
+            android:id="@+id/profileIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageprofile"
+            android:tint="@color/white"
+            android:contentDescription="Profile" />
+    </LinearLayout>
+</LinearLayout>

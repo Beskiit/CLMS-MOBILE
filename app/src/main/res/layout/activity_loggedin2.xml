@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFF">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="40dp"
+            android:src="@drawable/clmslogo"
+            android:contentDescription="Logo" />
+    </LinearLayout>
+
+    <!-- Main Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <!-- PC Number -->
+        <TextView
+            android:id="@+id/pcNumberText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="PC31"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LOGGED IN"
+            android:textSize="18sp"
+            android:textColor="#000000"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Power Button Image -->
+        <ImageButton
+            android:id="@+id/logoutButton"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/out"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:contentDescription="Logout Button"/>
+
+        <!-- Instruction Text -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Click the button to logout your account"
+            android:textColor="#666666"
+            android:layout_marginTop="24dp"
+            android:textAlignment="center"/>
+
+    </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:background="#0B7AC8"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/homeIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/home"
+            android:tint="@color/white"
+            android:contentDescription="Home" />
+
+        <ImageView
+            android:id="@+id/issueIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageissue"
+            android:tint="@color/white"
+            android:contentDescription="Issue" />
+
+        <ImageView
+            android:id="@+id/profileIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/imageprofile"
+            android:tint="@color/white"
+            android:contentDescription="Profile" />
+    </LinearLayout>
+</LinearLayout>
