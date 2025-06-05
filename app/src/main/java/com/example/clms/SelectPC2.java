@@ -17,10 +17,10 @@ import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class SelectPC2 extends AppCompatActivity {
     private Spinner pcSpinner;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,27 +33,20 @@ public class SelectPC2 extends AppCompatActivity {
             return insets;
         });
 
-        // Get the lab name and PC count from intent
+        // Initialize database helper
+        dbHelper = new DatabaseHelper(this);
+
+        // Get the lab name from intent
         String labName = getIntent().getStringExtra("LAB_NAME");
-        int pcCount = getIntent().getIntExtra("PC_COUNT", 40); // Default to 40 if not specified
 
         // Update the PC text to show which lab was selected
         TextView pcText = findViewById(R.id.labNameTextView);
         pcText.setText(labName);
 
-        // Create list of PCs with random status
+        // Get computers from database
         List<String> pcList = new ArrayList<>();
-
-        // Add default "Select PC" item
-        pcList.add("Select PC");
-
-        Random random = new Random();
-        String[] statuses = {"Available", "Occupied", "Unavailable"};
-
-        for (int i = 1; i <= pcCount; i++) {
-            String status = statuses[random.nextInt(statuses.length)];
-            pcList.add("PC " + i + " - " + status);
-        }
+        pcList.add("Select PC"); // Add default selection
+        pcList.addAll(dbHelper.getComputersByLab(labName));
 
         pcSpinner = findViewById(R.id.computerSpinner);
 
@@ -78,8 +71,9 @@ public class SelectPC2 extends AppCompatActivity {
                 if (status.equals("Available")) {
                     // Create intent to start LoggedInActivity
                     Intent intent = new Intent(SelectPC2.this, Loggedin.class);
-                    // Pass the selected PC number
+                    // Pass the selected PC number and lab name
                     intent.putExtra("PC_NUMBER", pcNumber);
+                    intent.putExtra("LAB_NAME", labName);
                     startActivity(intent);
                 } else {
                     Toast.makeText(SelectPC2.this,
@@ -129,5 +123,13 @@ public class SelectPC2 extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dbHelper != null) {
+            dbHelper.close();
+        }
     }
 }

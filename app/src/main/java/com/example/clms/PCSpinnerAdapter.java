@@ -33,13 +33,13 @@ public class PCSpinnerAdapter extends ArrayAdapter<String> {
     private View getCustomView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = inflater.inflate(R.layout.pc_spinner_item, parent, false);
+            view = inflater.inflate(R.layout.spinner_dropdown_item, parent, false);
         }
 
         String item = getItem(position);
         if (item != null) {
             TextView pcNumber = view.findViewById(R.id.pcNumber);
-            TextView statusText = view.findViewById(R.id.statusText);
+            TextView statusText = view.findViewById(R.id.pcStatus);
 
             String[] parts = item.split(" - ");
             pcNumber.setText(parts[0]); // PC number

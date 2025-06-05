@@ -292,7 +292,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                role = cursor.getString(cursor.getColumnIndex(COLUMN_ROLE));
+                int columnIndex = cursor.getColumnIndex(COLUMN_ROLE);
+                if (columnIndex != -1) {
+                    role = cursor.getString(columnIndex);
+                } else {
+                    Log.e(TAG, "COLUMN_ROLE not found in cursor");
+                }
             }
             cursor.close();
             return role;
@@ -322,29 +327,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                int accountId = cursor.getInt(cursor.getColumnIndex(COLUMN_ACCOUNT_ID));
-                cursor.close();
+                int columnIndex = cursor.getColumnIndex(COLUMN_ACCOUNT_ID);
+                if (columnIndex != -1) {
+                    int accountId = cursor.getInt(columnIndex);
+                    cursor.close();
 
-                // Begin transaction for better performance
-                db.beginTransaction();
+                    // Begin transaction for better performance
+                    db.beginTransaction();
 
-                try {
-                    // Insert computers for Laboratory A (40 computers)
-                    insertComputersForLab(db, "Computer Laboratory A", 40, accountId);
+                    try {
+                        // Insert computers for Laboratory A (40 computers)
+                        insertComputersForLab(db, "Computer Laboratory A", 40, accountId);
 
-                    // Insert computers for Laboratory B (40 computers)
-                    insertComputersForLab(db, "Computer Laboratory B", 40, accountId);
+                        // Insert computers for Laboratory B (40 computers)
+                        insertComputersForLab(db, "Computer Laboratory B", 40, accountId);
 
-                    // Insert computers for Laboratory C (50 computers)
-                    insertComputersForLab(db, "Computer Laboratory C", 50, accountId);
+                        // Insert computers for Laboratory C (50 computers)
+                        insertComputersForLab(db, "Computer Laboratory C", 50, accountId);
 
-                    // Mark transaction as successful
-                    db.setTransactionSuccessful();
-                    
-                    Log.d(TAG, "Successfully inserted all computer data");
-                } finally {
-                    // End transaction
-                    db.endTransaction();
+                        // Mark transaction as successful
+                        db.setTransactionSuccessful();
+                        
+                        Log.d(TAG, "Successfully inserted all computer data");
+                    } finally {
+                        // End transaction
+                        db.endTransaction();
+                    }
+                } else {
+                    Log.e(TAG, "COLUMN_ACCOUNT_ID not found in cursor");
+                    cursor.close();
                 }
             }
         } catch (Exception e) {
@@ -407,9 +418,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             while (cursor.moveToNext()) {
-                String unit = cursor.getString(cursor.getColumnIndex(COLUMN_UNIT));
-                String status = cursor.getString(cursor.getColumnIndex(COLUMN_STATUS));
-                computers.add(unit + " - " + status);
+                int unitColumnIndex = cursor.getColumnIndex(COLUMN_UNIT);
+                int statusColumnIndex = cursor.getColumnIndex(COLUMN_STATUS);
+                
+                if (unitColumnIndex != -1 && statusColumnIndex != -1) {
+                    String unit = cursor.getString(unitColumnIndex);
+                    String status = cursor.getString(statusColumnIndex);
+                    computers.add(unit + " - " + status);
+                } else {
+                    Log.e(TAG, "Required columns not found in cursor");
+                }
             }
             cursor.close();
             
@@ -443,7 +461,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                computerId = cursor.getInt(cursor.getColumnIndex(COLUMN_COMPUTER_ID));
+                int columnIndex = cursor.getColumnIndex(COLUMN_COMPUTER_ID);
+                if (columnIndex != -1) {
+                    computerId = cursor.getInt(columnIndex);
+                } else {
+                    Log.e(TAG, "COLUMN_COMPUTER_ID not found in cursor");
+                }
             }
             cursor.close();
             
@@ -507,23 +530,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                int computerId = cursor.getInt(cursor.getColumnIndex(COLUMN_COMPUTER_ID));
-                cursor.close();
+                int columnIndex = cursor.getColumnIndex(COLUMN_COMPUTER_ID);
+                if (columnIndex != -1) {
+                    int computerId = cursor.getInt(columnIndex);
+                    cursor.close();
 
-                // Now insert the issue
-                ContentValues values = new ContentValues();
-                values.put(COLUMN_REPORTED_BY, reportedBy);
-                values.put(COLUMN_ISSUE_DESCRIPTION, description);
-                values.put(COLUMN_COMPUTER_ID, computerId);
-                values.put(COLUMN_STATUS, "Pending"); // Initial status for new issues
-                values.put(COLUMN_DATE_REPORTED, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+                    // Now insert the issue
+                    ContentValues values = new ContentValues();
+                    values.put(COLUMN_REPORTED_BY, reportedBy);
+                    values.put(COLUMN_ISSUE_DESCRIPTION, description);
+                    values.put(COLUMN_COMPUTER_ID, computerId);
+                    values.put(COLUMN_STATUS, "Pending"); // Initial status for new issues
+                    values.put(COLUMN_DATE_REPORTED, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
 
-                long issueId = db.insert(TABLE_ISSUE, null, values);
-                success = issueId != -1;
+                    long issueId = db.insert(TABLE_ISSUE, null, values);
+                    success = issueId != -1;
 
-                if (success) {
-                    // Update computer status to Unavailable
-                    success = updateComputerStatus(pcUnit, labName, "Unavailable");
+                    if (success) {
+                        // Update computer status to Unavailable
+                        success = updateComputerStatus(pcUnit, labName, "Unavailable");
+                    }
                 }
             }
         } catch (Exception e) {
