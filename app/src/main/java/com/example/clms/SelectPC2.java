@@ -38,24 +38,24 @@ public class SelectPC2 extends AppCompatActivity {
         int pcCount = getIntent().getIntExtra("PC_COUNT", 40); // Default to 40 if not specified
 
         // Update the PC text to show which lab was selected
-        TextView pcText = findViewById(R.id.pcText);
+        TextView pcText = findViewById(R.id.labNameTextView);
         pcText.setText(labName);
 
         // Create list of PCs with random status
-        List<PCSpinnerAdapter.PCItem> pcList = new ArrayList<>();
+        List<String> pcList = new ArrayList<>();
 
         // Add default "Select PC" item
-        pcList.add(new PCSpinnerAdapter.PCItem("Select PC", ""));
+        pcList.add("Select PC");
 
         Random random = new Random();
         String[] statuses = {"Available", "Occupied", "Unavailable"};
 
         for (int i = 1; i <= pcCount; i++) {
             String status = statuses[random.nextInt(statuses.length)];
-            pcList.add(new PCSpinnerAdapter.PCItem("PC " + i, status));
+            pcList.add("PC " + i + " - " + status);
         }
 
-        pcSpinner = findViewById(R.id.pcSpinner);
+        pcSpinner = findViewById(R.id.computerSpinner);
 
         // Create and set the custom adapter
         PCSpinnerAdapter adapter = new PCSpinnerAdapter(this, pcList);
@@ -65,21 +65,25 @@ public class SelectPC2 extends AppCompatActivity {
         pcSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PCSpinnerAdapter.PCItem selectedItem = (PCSpinnerAdapter.PCItem) parent.getItemAtPosition(position);
+                String selectedItem = (String) parent.getItemAtPosition(position);
                 if (position == 0) {
                     // Do nothing for the default "Select PC" item
                     return;
                 }
                 
-                if (selectedItem.getStatus().equals("Available")) {
+                String[] parts = selectedItem.split(" - ");
+                String pcNumber = parts[0];
+                String status = parts.length > 1 ? parts[1] : "";
+                
+                if (status.equals("Available")) {
                     // Create intent to start LoggedInActivity
                     Intent intent = new Intent(SelectPC2.this, Loggedin.class);
                     // Pass the selected PC number
-                    intent.putExtra("PC_NUMBER", selectedItem.getPcNumber());
+                    intent.putExtra("PC_NUMBER", pcNumber);
                     startActivity(intent);
                 } else {
                     Toast.makeText(SelectPC2.this,
-                            "This PC is " + selectedItem.getStatus(),
+                            "This PC is " + status,
                             Toast.LENGTH_SHORT).show();
                     // Reset selection to "Select PC"
                     pcSpinner.setSelection(0);

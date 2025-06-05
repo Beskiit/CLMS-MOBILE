@@ -3,6 +3,7 @@ package com.example.clms;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -26,51 +27,30 @@ public class HomePage extends AppCompatActivity {
             return insets;
         });
 
+        // Initialize buttons
+        LinearLayout labAButton = findViewById(R.id.labAButton);
+        LinearLayout labBButton = findViewById(R.id.labBButton);
+        LinearLayout labCButton = findViewById(R.id.labCButton);
+        LinearLayout loginHistoryButton = findViewById(R.id.loginHistoryButton);
 
-        // Find all lab buttons
-        LinearLayout labA = findViewById(R.id.labAButton);
-        LinearLayout labB = findViewById(R.id.labBButton);
-        LinearLayout labC = findViewById(R.id.labCButton);
-        LinearLayout loginHistory = findViewById(R.id.loginHistoryButton);
+        // Set click listeners for laboratory buttons
+        labAButton.setOnClickListener(v -> openLabSelection("Computer Laboratory A"));
+        labBButton.setOnClickListener(v -> openLabSelection("Computer Laboratory B"));
+        labCButton.setOnClickListener(v -> openLabSelection("Computer Laboratory C"));
 
-        loginHistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomePage.this, LoginHistoryActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        // Set click listeners for each lab
-        labA.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openSelectPC("LAB A", 40);
-            }
-        });
-
-        labB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openSelectPC("LAB B", 40);
-            }
-        });
-
-        labC.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openSelectPC("LAB C", 50);
-            }
+        // Login History button click listener
+        loginHistoryButton.setOnClickListener(v -> {
+            // Handle login history click
+            // TODO: Implement login history functionality
         });
 
         // Setup bottom navigation
         setupBottomNavigation();
     }
 
-    private void openSelectPC(String labName, int pcCount) {
-        Intent intent = new Intent(this, SelectPC2.class);
+    private void openLabSelection(String labName) {
+        Intent intent = new Intent(HomePage.this, SelectPCActivity.class);
         intent.putExtra("LAB_NAME", labName);
-        intent.putExtra("PC_COUNT", pcCount);
         startActivity(intent);
     }
 

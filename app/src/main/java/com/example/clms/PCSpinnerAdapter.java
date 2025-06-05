@@ -1,6 +1,7 @@
 package com.example.clms;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import java.util.List;
 
-public class PCSpinnerAdapter extends ArrayAdapter<PCSpinnerAdapter.PCItem> {
+public class PCSpinnerAdapter extends ArrayAdapter<String> {
     private final LayoutInflater inflater;
 
-    public PCSpinnerAdapter(Context context, List<PCItem> items) {
+    public PCSpinnerAdapter(Context context, List<String> items) {
         super(context, 0, items);
         inflater = LayoutInflater.from(context);
     }
@@ -32,58 +33,40 @@ public class PCSpinnerAdapter extends ArrayAdapter<PCSpinnerAdapter.PCItem> {
     private View getCustomView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
         if (view == null) {
-            view = inflater.inflate(R.layout.spinner_item, parent, false);
+            view = inflater.inflate(R.layout.pc_spinner_item, parent, false);
         }
 
-        PCItem item = getItem(position);
+        String item = getItem(position);
         if (item != null) {
             TextView pcNumber = view.findViewById(R.id.pcNumber);
-            TextView pcStatus = view.findViewById(R.id.pcStatus);
+            TextView statusText = view.findViewById(R.id.statusText);
 
-            pcNumber.setText(item.getPcNumber());
-            
-            // Only show status for non-default items
-            if (position == 0) {
-                pcStatus.setVisibility(View.GONE);
-            } else {
-                pcStatus.setVisibility(View.VISIBLE);
-                pcStatus.setText(item.getStatus());
+            String[] parts = item.split(" - ");
+            pcNumber.setText(parts[0]); // PC number
+            pcNumber.setTextColor(Color.BLACK);
 
-                // Set status text color based on status
-                int color;
-                switch (item.getStatus().toLowerCase()) {
+            if (parts.length > 1) {
+                String status = parts[1];
+                statusText.setText(status);
+                statusText.setVisibility(View.VISIBLE);
+
+                // Set color based on status
+                switch (status.toLowerCase()) {
                     case "available":
-                        color = 0xFF008000; // Green
+                        statusText.setTextColor(Color.parseColor("#008000")); // Green
                         break;
                     case "occupied":
-                        color = 0xFFFF0000; // Red
+                        statusText.setTextColor(Color.parseColor("#FF0000")); // Red
                         break;
-                    default:
-                        color = 0xFF808080; // Gray for unavailable
+                    case "unavailable":
+                        statusText.setTextColor(Color.parseColor("#808080")); // Gray
                         break;
                 }
-                pcStatus.setTextColor(color);
+            } else {
+                statusText.setVisibility(View.GONE);
             }
         }
 
         return view;
-    }
-
-    public static class PCItem {
-        private final String pcNumber;
-        private final String status;
-
-        public PCItem(String pcNumber, String status) {
-            this.pcNumber = pcNumber;
-            this.status = status;
-        }
-
-        public String getPcNumber() {
-            return pcNumber;
-        }
-
-        public String getStatus() {
-            return status;
-        }
     }
 } 

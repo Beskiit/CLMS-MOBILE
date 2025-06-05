@@ -4,51 +4,39 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-
-import androidx.activity.EdgeToEdge;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class IssueAct extends AppCompatActivity {
-
     private Spinner labSpinner;
     private Spinner pcSpinner;
     private EditText issueTypeInput;
-    private Button addIssueButton;
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_issue2);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
+        // Initialize database helper
+        dbHelper = new DatabaseHelper(this);
 
         // Initialize views
         labSpinner = findViewById(R.id.labSpinner);
         pcSpinner = findViewById(R.id.pcSpinner);
         issueTypeInput = findViewById(R.id.issueTypeInput);
-        addIssueButton = findViewById(R.id.addIssueButton);
 
-        // Setup lab spinner
+        // Setup spinners
         setupLabSpinner();
-
-        // Setup bottom navigation
         setupBottomNavigation();
+
+        // Setup add issue button
+        findViewById(R.id.addIssueButton).setOnClickListener(v -> handleAddIssue());
     }
 
     private void setupLabSpinner() {
@@ -60,16 +48,7 @@ public class IssueAct extends AppCompatActivity {
         labs.add("Computer Laboratory C");
 
         // Create and set adapter for lab spinner with custom layout
-        ArrayAdapter<String> labAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_spinner_item,
-                labs
-        );
-        labAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // Apply custom layout for selected item and dropdown
-        labAdapter = new ArrayAdapter<String>(this, R.layout.custom_spinner_item, labs);
-        labAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+        PCSpinnerAdapter labAdapter = new PCSpinnerAdapter(this, labs);
         labSpinner.setAdapter(labAdapter);
 
         // Handle lab selection
@@ -77,7 +56,9 @@ public class IssueAct extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedLab = parent.getItemAtPosition(position).toString();
-                updatePCSpinner(selectedLab);
+                if (!selectedLab.equals("Select Laboratory")) {
+                    updatePCSpinner(selectedLab);
+                }
             }
 
             @Override
@@ -88,28 +69,16 @@ public class IssueAct extends AppCompatActivity {
     }
 
     private void updatePCSpinner(String selectedLab) {
-        List<String> pcs = new ArrayList<>();
-        pcs.add("Select PC");
+        // Get computers for the selected lab from database
+        List<String> computers = dbHelper.getComputersByLab(selectedLab);
+        
+        // Add "Select PC" as first option
+        List<String> pcList = new ArrayList<>();
+        pcList.add("Select PC");
+        pcList.addAll(computers);
 
-        int pcCount = 0;
-        switch (selectedLab) {
-            case "Computer Laboratory A":
-            case "Computer Laboratory B":
-                pcCount = 40;
-                break;
-            case "Computer Laboratory C":
-                pcCount = 50;
-                break;
-        }
-
-        // Add PC numbers based on the selected lab
-        for (int i = 1; i <= pcCount; i++) {
-            pcs.add("PC " + i);
-        }
-
-        // Create and set adapter for PC spinner with custom layout
-        ArrayAdapter<String> pcAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, pcs);
-        pcAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+        // Create and set adapter for PC spinner
+        PCSpinnerAdapter pcAdapter = new PCSpinnerAdapter(this, pcList);
         pcSpinner.setAdapter(pcAdapter);
     }
 
@@ -142,5 +111,47 @@ public class IssueAct extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    private void handleAddIssue() {
+        // Get selected values
+        String selectedLab = labSpinner.getSelectedItem().toString();
+        String selectedPC = pcSpinner.getSelectedItem().toString();
+        String issueDescription = issueTypeInput.getText().toString().trim();
+
+        // Validate inputs
+        if (selectedLab.equals("Select Laboratory") || 
+            selectedPC.equals("Select PC") || 
+            issueDescription.isEmpty()) {
+            Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Extract PC unit from the selected PC (remove status part)
+        String pcUnit = selectedPC.split(" - ")[0];
+
+        // TODO: Get the actual account ID of the logged-in user
+        int reportedBy = 1; // Temporary default value
+
+        // Add the issue to database
+        boolean success = dbHelper.addIssue(pcUnit, selectedLab, issueDescription, reportedBy);
+
+        if (success) {
+            Toast.makeText(this, "Issue reported successfully", Toast.LENGTH_SHORT).show();
+            // Reset form
+            labSpinner.setSelection(0);
+            pcSpinner.setSelection(0);
+            issueTypeInput.setText("");
+        } else {
+            Toast.makeText(this, "Failed to report issue", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (dbHelper != null) {
+            dbHelper.close();
+        }
     }
 }
