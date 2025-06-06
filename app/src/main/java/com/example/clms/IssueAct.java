@@ -2,41 +2,58 @@ package com.example.clms;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IssueAct extends AppCompatActivity {
+public class IssueAct extends BaseActivity {
+    private static final String TAG = "IssueAct";
     private Spinner labSpinner;
     private Spinner pcSpinner;
-    private EditText issueTypeInput;
+    private EditText issueDescription;
+    private Button submitButton;
     private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_issue2);
-
-        // Initialize database helper
-        dbHelper = new DatabaseHelper(this);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // Initialize views
         labSpinner = findViewById(R.id.labSpinner);
         pcSpinner = findViewById(R.id.pcSpinner);
-        issueTypeInput = findViewById(R.id.issueTypeInput);
+        issueDescription = findViewById(R.id.issueDescription);
+        submitButton = findViewById(R.id.addIssueButton);
+
+        // Initialize database helper
+        dbHelper = new DatabaseHelper(this);
 
         // Setup spinners
         setupLabSpinner();
-        setupBottomNavigation();
+        setupPCSpinner();
 
-        // Setup add issue button
-        findViewById(R.id.addIssueButton).setOnClickListener(v -> handleAddIssue());
+        // Setup submit button
+        setupSubmitButton();
+
+        // Setup bottom navigation
+        setupBottomNavigation();
     }
 
     private void setupLabSpinner() {
@@ -68,6 +85,13 @@ public class IssueAct extends AppCompatActivity {
         });
     }
 
+    private void setupPCSpinner() {
+        List<String> initialList = new ArrayList<>();
+        initialList.add("Select PC");
+        PCSpinnerAdapter initialAdapter = new PCSpinnerAdapter(this, initialList);
+        pcSpinner.setAdapter(initialAdapter);
+    }
+
     private void updatePCSpinner(String selectedLab) {
         // Get computers for the selected lab from database
         List<String> computers = dbHelper.getComputersByLab(selectedLab);
@@ -82,68 +106,77 @@ public class IssueAct extends AppCompatActivity {
         pcSpinner.setAdapter(pcAdapter);
     }
 
-    private void setupBottomNavigation() {
-        ImageView homeIcon = findViewById(R.id.homeIcon);
+    private void setupSubmitButton() {
+        submitButton.setOnClickListener(v -> handleAddIssue());
+    }
+
+    @Override
+    protected void setupBottomNavigation() {
+        super.setupBottomNavigation();
+        
+        // Additional IssueAct-specific navigation setup
         ImageView issueIcon = findViewById(R.id.issueIcon);
-        ImageView profileIcon = findViewById(R.id.profileIcon);
-
-        homeIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(IssueAct.this, HomePage.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        // Issue icon is already active in this activity
-        issueIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Already in issue activity
-            }
-        });
-
-        profileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(IssueAct.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-        });
+        if (issueIcon != null) {
+            // Issue icon is current page, no action needed
+            issueIcon.setOnClickListener(null);
+        }
     }
 
     private void handleAddIssue() {
-        // Get selected values
-        String selectedLab = labSpinner.getSelectedItem().toString();
-        String selectedPC = pcSpinner.getSelectedItem().toString();
-        String issueDescription = issueTypeInput.getText().toString().trim();
+        try {
+            // Get selected lab
+            String selectedLab = labSpinner.getSelectedItem().toString();
+            if (selectedLab.equals("Select Laboratory")) {
+                Toast.makeText(this, "Please select a laboratory", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        // Validate inputs
-        if (selectedLab.equals("Select Laboratory") || 
-            selectedPC.equals("Select PC") || 
-            issueDescription.isEmpty()) {
-            Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
+            // Get selected PC
+            String selectedPC = pcSpinner.getSelectedItem().toString();
+            if (selectedPC.equals("Select PC")) {
+                Toast.makeText(this, "Please select a PC", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        // Extract PC unit from the selected PC (remove status part)
-        String pcUnit = selectedPC.split(" - ")[0];
+            // Clean up PC string to get just the unit number and status
+            String[] parts = selectedPC.split(" - ");
+            String pcUnit = parts[0];
+            String pcStatus = parts[1];
 
-        // TODO: Get the actual account ID of the logged-in user
-        int reportedBy = 1; // Temporary default value
+            // Check if PC is occupied
+            if (pcStatus.equals("Occupied")) {
+                Toast.makeText(this, "Cannot report issue for occupied PC. Please wait until the PC is available.", Toast.LENGTH_LONG).show();
+                return;
+            }
 
-        // Add the issue to database
-        boolean success = dbHelper.addIssue(pcUnit, selectedLab, issueDescription, reportedBy);
+            // Get issue description
+            String description = issueDescription.getText().toString().trim();
+            if (description.isEmpty()) {
+                Toast.makeText(this, "Please enter issue description", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        if (success) {
-            Toast.makeText(this, "Issue reported successfully", Toast.LENGTH_SHORT).show();
-            // Reset form
-            labSpinner.setSelection(0);
-            pcSpinner.setSelection(0);
-            issueTypeInput.setText("");
-        } else {
-            Toast.makeText(this, "Failed to report issue", Toast.LENGTH_SHORT).show();
+            // Get account ID
+            int accountId = dbHelper.getAccountId(username);
+            if (accountId == -1) {
+                Toast.makeText(this, "Error: User not found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Add issue to database
+            if (dbHelper.addIssue(pcUnit, selectedLab, description, accountId)) {
+                Toast.makeText(this, "Issue reported successfully", Toast.LENGTH_SHORT).show();
+                // Clear inputs
+                labSpinner.setSelection(0);
+                setupPCSpinner(); // Reset PC spinner
+                issueDescription.setText("");
+            } else {
+                Toast.makeText(this, "Failed to report issue", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error handling issue submission", e);
+            Toast.makeText(this, "Error submitting issue", Toast.LENGTH_SHORT).show();
         }
     }
 

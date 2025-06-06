@@ -7,12 +7,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class HomePage extends AppCompatActivity {
+public class HomePage extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +30,19 @@ public class HomePage extends AppCompatActivity {
         // Setup bottom navigation
         setupBottomNavigation();
 
-        // Setup login history button
-        setupLoginHistoryButton();
+        LinearLayout loginHistoryBtn = (LinearLayout) findViewById(R.id.loginHistoryButton);
+
+        // Get username from intent
+        String username = getIntent().getStringExtra("USERNAME");
+
+        loginHistoryBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomePage.this, LoginHistoryActivity.class);
+                intent.putExtra("USERNAME", username);
+                startActivity(intent);
+            }
+        });
     }
 
     private void setupLabButtons() {
@@ -41,11 +51,15 @@ public class HomePage extends AppCompatActivity {
         LinearLayout labCButton = findViewById(R.id.labCButton);
         LinearLayout loginHistoryButton = findViewById(R.id.loginHistoryButton);
 
+        // Get username from intent
+        String username = getIntent().getStringExtra("USERNAME");
+
         labAButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomePage.this, SelectPC2.class);
                 intent.putExtra("LAB_NAME", "Computer Laboratory A");
+                intent.putExtra("USERNAME", username);
                 startActivity(intent);
             }
         });
@@ -55,6 +69,7 @@ public class HomePage extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(HomePage.this, SelectPC2.class);
                 intent.putExtra("LAB_NAME", "Computer Laboratory B");
+                intent.putExtra("USERNAME", username);
                 startActivity(intent);
             }
         });
@@ -64,44 +79,21 @@ public class HomePage extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(HomePage.this, SelectPC2.class);
                 intent.putExtra("LAB_NAME", "Computer Laboratory C");
+                intent.putExtra("USERNAME", username);
                 startActivity(intent);
             }
         });
     }
 
-    private void setupLoginHistoryButton() {
-        LinearLayout loginHistoryButton = findViewById(R.id.loginHistoryButton);
-        loginHistoryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomePage.this, LoginHistoryActivity.class);
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void setupBottomNavigation() {
+    @Override
+    protected void setupBottomNavigation() {
+        super.setupBottomNavigation();
+        
+        // Additional HomePage-specific navigation setup
         ImageView homeIcon = findViewById(R.id.homeIcon);
-        ImageView issueIcon = findViewById(R.id.issueIcon);
-        ImageView profileIcon = findViewById(R.id.profileIcon);
-
-        // Home icon is current page, no action needed
-        homeIcon.setOnClickListener(null);
-
-        issueIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomePage.this, IssueAct.class);
-                startActivity(intent);
-            }
-        });
-
-        profileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomePage.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-        });
+        if (homeIcon != null) {
+            // Home icon is current page, no action needed
+            homeIcon.setOnClickListener(null);
+        }
     }
 }

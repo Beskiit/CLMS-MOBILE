@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CLMS.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 4;
     private final Context context;
 
     // Table Names
@@ -30,85 +30,88 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_ISSUE = "Issue";
 
     // Common column names
-    private static final String COLUMN_ID = "id";
-    private static final String COLUMN_ACCOUNT_ID = "account_id";
-    private static final String COLUMN_COMPUTER_ID = "computer_id";
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_ACCOUNT_ID = "account_id";
 
     // Account Table Columns
-    private static final String COLUMN_NAME = "name";
-    private static final String COLUMN_USERNAME = "username";
-    private static final String COLUMN_PASSWORD = "password";
-    private static final String COLUMN_COURSE = "course";
-    private static final String COLUMN_ACCOUNT_CREATED = "account_created";
-    private static final String COLUMN_ROLE = "role";
-    private static final String COLUMN_IS_ARCHIVED = "isArchived";
+    public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_USERNAME = "username";
+    public static final String COLUMN_PASSWORD = "password";
+    public static final String COLUMN_COURSE = "course";
+    public static final String COLUMN_ACCOUNT_CREATED = "account_created";
+    public static final String COLUMN_ROLE = "role";
+    public static final String COLUMN_IS_ARCHIVED = "isArchived";
 
     // Computer Table Columns
-    private static final String COLUMN_LABORATORY_NAME = "laboratory_name";
-    private static final String COLUMN_STATUS = "status";
-    private static final String COLUMN_UNIT = "unit";
+    public static final String COLUMN_LABORATORY_NAME = "laboratory_name";
+    public static final String COLUMN_STATUS = "status";
+    public static final String COLUMN_UNIT = "unit";
+    public static final String COLUMN_CURRENT_USER = "current_user";
 
     // Login History Table Columns
-    private static final String COLUMN_LOG_STATUS = "log_status";
-    private static final String COLUMN_LOGIN_DATE = "login_date";
+    public static final String COLUMN_COMPUTER_LABORATORY = "computer_laboratory";
+    public static final String COLUMN_PC_NAME = "pc_name";
+    public static final String COLUMN_LOGGED_IN = "logged_in";
+    public static final String COLUMN_LOGGED_OUT = "logged_out";
+    public static final String COLUMN_LOG_STATUS = "log_status";
 
     // Activity Log Table Columns
-    private static final String COLUMN_ACTIVITY_NAME = "activity_name";
-    private static final String COLUMN_DATE_TIME = "date_time";
+    public static final String COLUMN_ACTIVITY_NAME = "activity_name";
+    public static final String COLUMN_DATE_TIME = "date_time";
 
     // Issue Table Columns
-    private static final String COLUMN_REPORTED_BY = "reported_by";
-    private static final String COLUMN_ISSUE_DESCRIPTION = "issue_description";
-    private static final String COLUMN_DATE_REPORTED = "date_reported";
+    public static final String COLUMN_REPORTED_BY = "reported_by";
+    public static final String COLUMN_ISSUE_DESCRIPTION = "issue_description";
+    public static final String COLUMN_DATE_REPORTED = "date_reported";
 
     // Create Table Statements
     private static final String CREATE_TABLE_ACCOUNT = "CREATE TABLE " + TABLE_ACCOUNT + "("
             + COLUMN_ACCOUNT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_NAME + " TEXT,"
-            + COLUMN_USERNAME + " TEXT,"
+            + COLUMN_USERNAME + " TEXT UNIQUE,"
             + COLUMN_PASSWORD + " TEXT,"
             + COLUMN_COURSE + " TEXT,"
             + COLUMN_ACCOUNT_CREATED + " DATETIME,"
             + COLUMN_ROLE + " TEXT,"
-            + COLUMN_IS_ARCHIVED + " INTEGER"
+            + COLUMN_IS_ARCHIVED + " INTEGER DEFAULT 0"
             + ")";
 
     private static final String CREATE_TABLE_COMPUTER = "CREATE TABLE " + TABLE_COMPUTER + "("
-            + COLUMN_COMPUTER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + COLUMN_ACCOUNT_ID + " INTEGER,"
+            + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_LABORATORY_NAME + " TEXT,"
-            + COLUMN_STATUS + " TEXT,"
             + COLUMN_UNIT + " TEXT,"
-            + "FOREIGN KEY(" + COLUMN_ACCOUNT_ID + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + ")"
+            + COLUMN_STATUS + " TEXT,"
+            + COLUMN_CURRENT_USER + " INTEGER"
             + ")";
 
     private static final String CREATE_TABLE_LOGIN_HISTORY = "CREATE TABLE " + TABLE_LOGIN_HISTORY + "("
             + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_ACCOUNT_ID + " INTEGER,"
-            + COLUMN_COMPUTER_ID + " INTEGER,"
+            + COLUMN_COMPUTER_LABORATORY + " TEXT,"
+            + COLUMN_PC_NAME + " TEXT,"
+            + COLUMN_LOGGED_IN + " DATETIME,"
+            + COLUMN_LOGGED_OUT + " DATETIME,"
             + COLUMN_LOG_STATUS + " TEXT,"
-            + COLUMN_LOGIN_DATE + " DATETIME,"
-            + "FOREIGN KEY(" + COLUMN_ACCOUNT_ID + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + "),"
-            + "FOREIGN KEY(" + COLUMN_COMPUTER_ID + ") REFERENCES " + TABLE_COMPUTER + "(" + COLUMN_COMPUTER_ID + ")"
+            + "FOREIGN KEY(" + COLUMN_ACCOUNT_ID + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + ")"
             + ")";
 
     private static final String CREATE_TABLE_ACTIVITY_LOG = "CREATE TABLE " + TABLE_ACTIVITY_LOG + "("
             + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_ACTIVITY_NAME + " TEXT,"
-            + COLUMN_NAME + " INTEGER,"
+            + COLUMN_ACCOUNT_ID + " INTEGER,"
             + COLUMN_DATE_TIME + " DATETIME,"
-            + "FOREIGN KEY(" + COLUMN_NAME + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + ")"
+            + "FOREIGN KEY(" + COLUMN_ACCOUNT_ID + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + ")"
             + ")";
 
     private static final String CREATE_TABLE_ISSUE = "CREATE TABLE " + TABLE_ISSUE + "("
             + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
             + COLUMN_REPORTED_BY + " INTEGER,"
             + COLUMN_ISSUE_DESCRIPTION + " TEXT,"
-            + COLUMN_COMPUTER_ID + " INTEGER,"
-            + COLUMN_STATUS + " TEXT,"
+            + COLUMN_COMPUTER_LABORATORY + " TEXT,"
+            + COLUMN_PC_NAME + " TEXT,"
+            + COLUMN_STATUS + " TEXT DEFAULT 'Pending',"
             + COLUMN_DATE_REPORTED + " DATETIME,"
-            + "FOREIGN KEY(" + COLUMN_REPORTED_BY + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + "),"
-            + "FOREIGN KEY(" + COLUMN_COMPUTER_ID + ") REFERENCES " + TABLE_COMPUTER + "(" + COLUMN_COMPUTER_ID + ")"
+            + "FOREIGN KEY(" + COLUMN_REPORTED_BY + ") REFERENCES " + TABLE_ACCOUNT + "(" + COLUMN_ACCOUNT_ID + ")"
             + ")";
 
     public DatabaseHelper(Context context) {
@@ -150,6 +153,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL(CREATE_TABLE_ISSUE);
             Log.d(TAG, "Issue table created successfully");
             
+            // Create default admin account
+            ContentValues adminValues = new ContentValues();
+            adminValues.put(COLUMN_NAME, "Administrator");
+            adminValues.put(COLUMN_USERNAME, "admin");
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest("admin123".getBytes("UTF-8"));
+                String hashedPassword = Base64.encodeToString(hash, Base64.DEFAULT);
+                adminValues.put(COLUMN_PASSWORD, hashedPassword);
+            } catch (Exception e) {
+                Log.e(TAG, "Error hashing admin password", e);
+                adminValues.put(COLUMN_PASSWORD, "admin123"); // Fallback to plain password if hashing fails
+            }
+            adminValues.put(COLUMN_ROLE, "Admin");
+            adminValues.put(COLUMN_ACCOUNT_CREATED, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+            
+            long adminId = db.insert(TABLE_ACCOUNT, null, adminValues);
+            Log.d(TAG, "Admin account created with ID: " + adminId);
+            
+            // Initialize computers for each lab
+            if (adminId != -1) {
+                insertComputersForLab(db, "Computer Laboratory A", 40);
+                insertComputersForLab(db, "Computer Laboratory B", 40);
+                insertComputersForLab(db, "Computer Laboratory C", 50);
+            }
+            
             Log.d(TAG, "All tables created successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error creating tables", e);
@@ -160,8 +189,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
+        
+        if (oldVersion < 5) {
+            // Add current_user column to computer table if it doesn't exist
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_COMPUTER + " ADD COLUMN " + COLUMN_CURRENT_USER + " INTEGER");
+                Log.d(TAG, "Added current_user column to computer table");
+            } catch (Exception e) {
+                Log.e(TAG, "Error adding current_user column: " + e.getMessage());
+            }
+        }
+        
         try {
-            // On upgrade drop older tables
+            // Enable foreign key support
+            db.execSQL("PRAGMA foreign_keys = OFF;");
+
+            // Backup existing data if needed
+            // For this version, we'll just drop and recreate
+            
+            // Drop existing tables
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_ISSUE);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACTIVITY_LOG);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOGIN_HISTORY);
@@ -170,6 +216,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             // Create new tables
             onCreate(db);
+
+            // Re-enable foreign key support
+            db.execSQL("PRAGMA foreign_keys = ON;");
+
             Log.d(TAG, "Database upgrade completed successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error upgrading database", e);
@@ -337,13 +387,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                     try {
                         // Insert computers for Laboratory A (40 computers)
-                        insertComputersForLab(db, "Computer Laboratory A", 40, accountId);
+                        insertComputersForLab(db, "Computer Laboratory A", 40);
 
                         // Insert computers for Laboratory B (40 computers)
-                        insertComputersForLab(db, "Computer Laboratory B", 40, accountId);
+                        insertComputersForLab(db, "Computer Laboratory B", 40);
 
                         // Insert computers for Laboratory C (50 computers)
-                        insertComputersForLab(db, "Computer Laboratory C", 50, accountId);
+                        insertComputersForLab(db, "Computer Laboratory C", 50);
 
                         // Mark transaction as successful
                         db.setTransactionSuccessful();
@@ -365,20 +415,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    private void insertComputersForLab(SQLiteDatabase db, String labName, int count, int accountId) {
-        for (int i = 1; i <= count; i++) {
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_ACCOUNT_ID, accountId);
-            values.put(COLUMN_LABORATORY_NAME, labName);
-            values.put(COLUMN_STATUS, "Available");
-            values.put(COLUMN_UNIT, "PC" + i);
-            
-            db.insert(TABLE_COMPUTER, null, values);
+    private void insertComputersForLab(SQLiteDatabase db, String labName, int count) {
+        try {
+            for (int i = 1; i <= count; i++) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_LABORATORY_NAME, labName);
+                values.put(COLUMN_STATUS, "Available");
+                values.put(COLUMN_UNIT, "PC" + i);
+                
+                long result = db.insert(TABLE_COMPUTER, null, values);
+                if (result == -1) {
+                    Log.e(TAG, "Failed to insert computer: PC" + i + " in " + labName);
+                }
+            }
+            Log.d(TAG, "Successfully inserted " + count + " computers for " + labName);
+        } catch (Exception e) {
+            Log.e(TAG, "Error inserting computers for " + labName, e);
         }
-        Log.d(TAG, "Inserted " + count + " computers for " + labName + " with units PC1-PC" + count);
     }
 
-    // Method to check if computers are already inserted
+    // Method to check if computers are already initialized
     public boolean areComputersInitialized() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -386,8 +442,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor = db.query(TABLE_COMPUTER, new String[]{"COUNT(*)"}, 
                 null, null, null, null, null);
             if (cursor.moveToFirst()) {
-                return cursor.getInt(0) > 0;
+                int count = cursor.getInt(0);
+                Log.d(TAG, "Found " + count + " computers in database");
+                return count > 0;
             }
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking if computers are initialized", e);
             return false;
         } finally {
             if (cursor != null) cursor.close();
@@ -446,7 +507,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int computerId = -1;
         
         try {
-            String[] columns = {COLUMN_COMPUTER_ID};
+            String[] columns = {COLUMN_ID};
             String selection = COLUMN_UNIT + "=? AND " + COLUMN_LABORATORY_NAME + "=?";
             String[] selectionArgs = {unit, labName};
 
@@ -461,15 +522,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                int columnIndex = cursor.getColumnIndex(COLUMN_COMPUTER_ID);
+                int columnIndex = cursor.getColumnIndex(COLUMN_ID);
                 if (columnIndex != -1) {
                     computerId = cursor.getInt(columnIndex);
+                    Log.d(TAG, "Found computer ID: " + computerId);
                 } else {
-                    Log.e(TAG, "COLUMN_COMPUTER_ID not found in cursor");
+                    Log.e(TAG, "Column ID not found in cursor");
                 }
+            } else {
+                Log.e(TAG, "No computer found for unit: " + unit + " in lab: " + labName);
             }
             cursor.close();
-            
         } catch (Exception e) {
             Log.e(TAG, "Error getting computer ID", e);
         } finally {
@@ -514,11 +577,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         boolean success = false;
         
         try {
-            // First get the computer_id
-            String[] columns = {COLUMN_COMPUTER_ID};
-            String selection = COLUMN_UNIT + "=? AND " + COLUMN_LABORATORY_NAME + "=?";
-            String[] selectionArgs = {pcUnit, labName};
-
+            db.beginTransaction();
+            
+            // First verify the computer exists and get its status
+            String[] columns = {COLUMN_STATUS};
+            String selection = COLUMN_LABORATORY_NAME + "=? AND " + COLUMN_UNIT + "=?";
+            String[] selectionArgs = {labName, pcUnit};
+            
             Cursor cursor = db.query(
                 TABLE_COMPUTER,
                 columns,
@@ -530,34 +595,293 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             if (cursor.moveToFirst()) {
-                int columnIndex = cursor.getColumnIndex(COLUMN_COMPUTER_ID);
-                if (columnIndex != -1) {
-                    int computerId = cursor.getInt(columnIndex);
-                    cursor.close();
+                // Create the issue entry
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_REPORTED_BY, reportedBy);
+                values.put(COLUMN_ISSUE_DESCRIPTION, description);
+                values.put(COLUMN_COMPUTER_LABORATORY, labName);
+                values.put(COLUMN_PC_NAME, pcUnit);
+                values.put(COLUMN_STATUS, "Pending"); // Initial status for new issues
+                values.put(COLUMN_DATE_REPORTED, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
 
-                    // Now insert the issue
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_REPORTED_BY, reportedBy);
-                    values.put(COLUMN_ISSUE_DESCRIPTION, description);
-                    values.put(COLUMN_COMPUTER_ID, computerId);
-                    values.put(COLUMN_STATUS, "Pending"); // Initial status for new issues
-                    values.put(COLUMN_DATE_REPORTED, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
-
-                    long issueId = db.insert(TABLE_ISSUE, null, values);
-                    success = issueId != -1;
-
-                    if (success) {
-                        // Update computer status to Unavailable
-                        success = updateComputerStatus(pcUnit, labName, "Unavailable");
+                long issueId = db.insert(TABLE_ISSUE, null, values);
+                
+                if (issueId != -1) {
+                    // Update computer status to Unavailable
+                    ContentValues computerValues = new ContentValues();
+                    computerValues.put(COLUMN_STATUS, "Unavailable");
+                    
+                    int updateResult = db.update(TABLE_COMPUTER, computerValues, selection, selectionArgs);
+                    
+                    if (updateResult > 0) {
+                        db.setTransactionSuccessful();
+                        success = true;
+                        Log.d(TAG, "Successfully added issue and updated computer status");
+                    } else {
+                        Log.e(TAG, "Failed to update computer status");
                     }
+                } else {
+                    Log.e(TAG, "Failed to insert issue");
                 }
+            } else {
+                Log.e(TAG, "Computer not found: " + pcUnit + " in " + labName);
             }
+            cursor.close();
         } catch (Exception e) {
             Log.e(TAG, "Error adding issue", e);
+        } finally {
+            try {
+                db.endTransaction();
+                db.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Error closing database", e);
+            }
+        }
+        
+        return success;
+    }
+
+    // Method to log in to a PC
+    public boolean loginToPC(int accountId, String computerLab, String pcName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        boolean success = false;
+
+        try {
+            db.beginTransaction();
+            
+            String[] columns = {COLUMN_STATUS};
+            String whereClause = COLUMN_LABORATORY_NAME + "=? AND " + COLUMN_UNIT + "=?";
+            String[] whereArgs = {computerLab, pcName};
+            
+            Log.d(TAG, "Checking PC status - Lab: " + computerLab + ", PC: " + pcName);
+            Cursor cursor = db.query(TABLE_COMPUTER, columns, whereClause, whereArgs, null, null, null);
+
+            if (cursor.moveToFirst()) {
+                String currentStatus = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_STATUS));
+                cursor.close();
+                
+                Log.d(TAG, "Current PC status: " + currentStatus);
+                
+                if ("Available".equals(currentStatus)) {
+                    // First create login history entry
+                    ContentValues historyValues = new ContentValues();
+                    historyValues.put(COLUMN_ACCOUNT_ID, accountId);
+                    historyValues.put(COLUMN_COMPUTER_LABORATORY, computerLab);
+                    historyValues.put(COLUMN_PC_NAME, pcName);
+                    historyValues.put(COLUMN_LOGGED_IN, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+                    historyValues.put(COLUMN_LOGGED_OUT, (String) null); // Set logged_out to null initially
+                    historyValues.put(COLUMN_LOG_STATUS, "Active");
+                    
+                    long insertResult = db.insert(TABLE_LOGIN_HISTORY, null, historyValues);
+                    
+                    if (insertResult != -1) {
+                        // Then update computer status
+                        ContentValues computerValues = new ContentValues();
+                        computerValues.put(COLUMN_STATUS, "Occupied");
+                        computerValues.put(COLUMN_CURRENT_USER, accountId);
+                        
+                        int updateResult = db.update(TABLE_COMPUTER, computerValues, whereClause, whereArgs);
+                        
+                        if (updateResult > 0) {
+                            db.setTransactionSuccessful();
+                            success = true;
+                            Log.d(TAG, "Successfully logged in to PC");
+                        } else {
+                            Log.e(TAG, "Failed to update computer status");
+                        }
+                    } else {
+                        Log.e(TAG, "Failed to insert login history");
+                    }
+                } else {
+                    Log.e(TAG, "PC is not available. Current status: " + currentStatus);
+                }
+            } else {
+                Log.e(TAG, "Computer not found");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error during PC login", e);
+        } finally {
+            try {
+                db.endTransaction();
+                db.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Error closing database", e);
+            }
+        }
+        
+        return success;
+    }
+
+    // Method to log out from a PC
+    public boolean logOutFromPC(int accountId, String computerLab, String pcName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        boolean success = false;
+        
+        try {
+            Log.d(TAG, "Starting logout process...");
+            db.beginTransaction();
+            
+            // First update the login history entry
+            ContentValues historyValues = new ContentValues();
+            historyValues.put(COLUMN_LOGGED_OUT, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+            historyValues.put(COLUMN_LOG_STATUS, "Completed");
+            
+            String historyWhereClause = COLUMN_ACCOUNT_ID + "=? AND " + COLUMN_COMPUTER_LABORATORY + "=? AND " 
+                                    + COLUMN_PC_NAME + "=? AND " + COLUMN_LOG_STATUS + "=? AND " + COLUMN_LOGGED_OUT + " IS NULL";
+            String[] historyWhereArgs = {String.valueOf(accountId), computerLab, pcName, "Active"};
+            
+            int historyUpdateResult = db.update(TABLE_LOGIN_HISTORY, historyValues, historyWhereClause, historyWhereArgs);
+            
+            if (historyUpdateResult > 0) {
+                // Then update computer status
+                ContentValues computerValues = new ContentValues();
+                computerValues.put(COLUMN_STATUS, "Available");
+                computerValues.put(COLUMN_CURRENT_USER, (Integer) null); // Clear current user
+                
+                String computerWhereClause = COLUMN_LABORATORY_NAME + "=? AND " + COLUMN_UNIT + "=?";
+                String[] computerWhereArgs = {computerLab, pcName};
+                
+                int computerUpdateResult = db.update(TABLE_COMPUTER, computerValues, computerWhereClause, computerWhereArgs);
+                
+                if (computerUpdateResult > 0) {
+                    db.setTransactionSuccessful();
+                    success = true;
+                    Log.d(TAG, "Logout process completed successfully");
+                } else {
+                    Log.e(TAG, "Failed to update computer status during logout");
+                }
+            } else {
+                Log.e(TAG, "Failed to update login history during logout");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error during logout process", e);
+            e.printStackTrace();
+        } finally {
+            try {
+                db.endTransaction();
+                db.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Error closing database", e);
+            }
+        }
+        
+        return success;
+    }
+
+    // Method to get login history for a user
+    public Cursor getLoginHistory(int accountId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {
+            COLUMN_COMPUTER_LABORATORY,
+            COLUMN_PC_NAME,
+            COLUMN_LOGGED_IN,
+            COLUMN_LOGGED_OUT,
+            COLUMN_LOG_STATUS
+        };
+        String selection = COLUMN_ACCOUNT_ID + "=?";
+        String[] selectionArgs = {String.valueOf(accountId)};
+        String orderBy = COLUMN_LOGGED_IN + " DESC";
+        
+        return db.query(TABLE_LOGIN_HISTORY, columns, selection, selectionArgs, null, null, orderBy);
+    }
+
+    // Method to get account ID by username
+    public int getAccountId(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int accountId = -1;
+        
+        try {
+            String[] columns = {COLUMN_ACCOUNT_ID};
+            String selection = COLUMN_USERNAME + "=?";
+            String[] selectionArgs = {username};
+
+            Cursor cursor = db.query(TABLE_ACCOUNT, columns, selection, selectionArgs, null, null, null);
+            if (cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex(COLUMN_ACCOUNT_ID);
+                if (columnIndex != -1) {
+                    accountId = cursor.getInt(columnIndex);
+                }
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting account ID", e);
         } finally {
             db.close();
         }
         
-        return success;
+        return accountId;
+    }
+
+    // Method to verify computer status
+    public String getComputerStatus(String labName, String pcUnit) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String status = null;
+        
+        try {
+            String[] columns = {COLUMN_STATUS};
+            String selection = COLUMN_LABORATORY_NAME + "=? AND " + COLUMN_UNIT + "=?";
+            String[] selectionArgs = {labName, pcUnit};
+            
+            Cursor cursor = db.query(
+                TABLE_COMPUTER,
+                columns,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+            );
+
+            if (cursor.moveToFirst()) {
+                int statusIndex = cursor.getColumnIndex(COLUMN_STATUS);
+                if (statusIndex != -1) {
+                    status = cursor.getString(statusIndex);
+                    Log.d(TAG, "Computer " + pcUnit + " status: " + status);
+                } else {
+                    Log.e(TAG, "Status column not found in cursor");
+                }
+            } else {
+                Log.e(TAG, "Computer " + pcUnit + " not found");
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting computer status", e);
+        } finally {
+            db.close();
+        }
+        
+        return status;
+    }
+
+    // Method to check if user has an active session
+    public String[] getActiveSession(int accountId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] sessionInfo = null;
+        
+        try {
+            String[] columns = {COLUMN_COMPUTER_LABORATORY, COLUMN_PC_NAME};
+            String selection = COLUMN_ACCOUNT_ID + "=? AND " + COLUMN_LOG_STATUS + "=? AND " + COLUMN_LOGGED_OUT + " IS NULL";
+            String[] selectionArgs = {String.valueOf(accountId), "Active"};
+            
+            Cursor cursor = db.query(TABLE_LOGIN_HISTORY, columns, selection, selectionArgs, null, null, null);
+            
+            if (cursor.moveToFirst()) {
+                sessionInfo = new String[2];
+                int labIndex = cursor.getColumnIndex(COLUMN_COMPUTER_LABORATORY);
+                int pcIndex = cursor.getColumnIndex(COLUMN_PC_NAME);
+                
+                if (labIndex != -1 && pcIndex != -1) {
+                    sessionInfo[0] = cursor.getString(labIndex);  // Laboratory name
+                    sessionInfo[1] = cursor.getString(pcIndex);   // PC name
+                }
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking active session", e);
+        } finally {
+            db.close();
+        }
+        
+        return sessionInfo;
     }
 } 

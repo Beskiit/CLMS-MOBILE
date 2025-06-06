@@ -40,147 +40,70 @@
             android:textColor="#0B7AC8"
             android:layout_marginBottom="24dp"/>
 
-        <!-- Date Selection -->
-        <LinearLayout
+        <!-- ScrollView for Table -->
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_height="0dp"
+            android:layout_weight="1">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <TableLayout
+                android:id="@+id/historyTable"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select Date:"
-                android:textColor="#000000"
-                android:layout_gravity="center_vertical"/>
+                android:stretchColumns="*">
 
-            <EditText
-                android:id="@+id/dateInput"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bordered_button"
-                android:padding="8dp"
-                android:text="2025-05-20"
-                android:enabled="false"
-                android:textColor="#000000"/>
-        </LinearLayout>
+                <!-- Header Row -->
+                <TableRow
+                    android:background="#E0E0E0"
+                    android:padding="5dp">
 
-        <!-- Table Header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#E0E0E0"
-            android:padding="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Laboratory"
+                        android:textStyle="bold"
+                        android:padding="10dp"
+                        android:textColor="#000000"/>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Laboratory"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="PC"
+                        android:textStyle="bold"
+                        android:padding="10dp"
+                        android:textColor="#000000"/>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="PC Number"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Logged In"
+                        android:textStyle="bold"
+                        android:padding="10dp"
+                        android:textColor="#000000"/>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Time In"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Logged Out"
+                        android:textStyle="bold"
+                        android:padding="10dp"
+                        android:textColor="#000000"/>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Time Out"
-                android:textColor="#000000"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <!-- Table Row 1 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#F5F5F5"
-            android:padding="8dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Lab A"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="31"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="10:00am"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="1:00pm"
-                android:textColor="#000000"/>
-        </LinearLayout>
-
-        <!-- Table Row 2 -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="#FFFFFF"
-            android:padding="8dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Lab A"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="10"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="3:00pm"
-                android:textColor="#000000"/>
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="5:20pm"
-                android:textColor="#000000"/>
-        </LinearLayout>
-
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Status"
+                        android:textStyle="bold"
+                        android:padding="10dp"
+                        android:textColor="#000000"/>
+                </TableRow>
+            </TableLayout>
+        </ScrollView>
     </LinearLayout>
 
     <!-- Bottom Navigation -->
@@ -199,6 +122,15 @@
             android:src="@drawable/home"
             android:tint="@color/white"
             android:contentDescription="Home" />
+
+        <ImageView
+            android:id="@+id/returnToPCIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/computers"
+            android:tint="@color/white"
+            android:contentDescription="Return to PC" />
 
         <ImageView
             android:id="@+id/issueIcon"

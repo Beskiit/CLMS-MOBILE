@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:orientation="horizontal"
+    android:background="#0B7AC8"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/homeIcon"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_weight="1"
+        android:src="@drawable/home"
+        android:tint="@color/white"
+        android:contentDescription="Home" />
+
+    <ImageView
+        android:id="@+id/returnToPCIcon"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_weight="1"
+        android:src="@drawable/computers"
+        android:tint="@color/white"
+        android:contentDescription="Return to PC" />
+
+    <ImageView
+        android:id="@+id/issueIcon"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_weight="1"
+        android:src="@drawable/imageissue"
+        android:tint="@color/white"
+        android:contentDescription="Issue" />
+
+    <ImageView
+        android:id="@+id/profileIcon"
+        android:layout_width="0dp"
+        android:layout_height="32dp"
+        android:layout_weight="1"
+        android:src="@drawable/imageprofile"
+        android:tint="@color/white"
+        android:contentDescription="Profile" />
+</LinearLayout> 

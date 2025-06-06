@@ -10,7 +10,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,9 +17,8 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectPC2 extends AppCompatActivity {
+public class SelectPC2 extends BaseActivity {
     private Spinner pcSpinner;
-    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +31,21 @@ public class SelectPC2 extends AppCompatActivity {
             return insets;
         });
 
-        // Initialize database helper
-        dbHelper = new DatabaseHelper(this);
-
-        // Get the lab name from intent
+        // Get the lab name and username from intent
         String labName = getIntent().getStringExtra("LAB_NAME");
+        username = getIntent().getStringExtra("USERNAME");
+
+        if (labName == null || labName.isEmpty()) {
+            Toast.makeText(this, "Error: Laboratory name not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        if (username == null || username.isEmpty()) {
+            Toast.makeText(this, "Error: Username not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // Update the PC text to show which lab was selected
         TextView pcText = findViewById(R.id.labNameTextView);
@@ -54,33 +62,45 @@ public class SelectPC2 extends AppCompatActivity {
         PCSpinnerAdapter adapter = new PCSpinnerAdapter(this, pcList);
         pcSpinner.setAdapter(adapter);
 
-        // Set the item selection listener
+        // Handle PC selection
         pcSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedItem = (String) parent.getItemAtPosition(position);
-                if (position == 0) {
-                    // Do nothing for the default "Select PC" item
-                    return;
-                }
-                
-                String[] parts = selectedItem.split(" - ");
-                String pcNumber = parts[0];
-                String status = parts.length > 1 ? parts[1] : "";
-                
-                if (status.equals("Available")) {
-                    // Create intent to start LoggedInActivity
-                    Intent intent = new Intent(SelectPC2.this, Loggedin.class);
-                    // Pass the selected PC number and lab name
-                    intent.putExtra("PC_NUMBER", pcNumber);
-                    intent.putExtra("LAB_NAME", labName);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(SelectPC2.this,
-                            "This PC is " + status,
-                            Toast.LENGTH_SHORT).show();
-                    // Reset selection to "Select PC"
-                    pcSpinner.setSelection(0);
+                String selectedPC = parent.getItemAtPosition(position).toString();
+                if (!selectedPC.equals("Select PC")) {
+                    // Extract PC unit and status
+                    String[] parts = selectedPC.split(" - ");
+                    String pcUnit = parts[0];
+                    
+                    // Verify current PC status
+                    String currentStatus = dbHelper.getComputerStatus(labName, pcUnit);
+                    if (currentStatus == null) {
+                        Toast.makeText(SelectPC2.this, "Error: Could not verify PC status", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    if ("Available".equals(currentStatus)) {
+                        int accountId = dbHelper.getAccountId(username);
+                        if (accountId != -1) {
+                            // First insert login history and update PC status
+                            if (dbHelper.loginToPC(accountId, labName, pcUnit)) {
+                                // If login successful, redirect to LoggedIn activity
+                                Intent intent = new Intent(SelectPC2.this, LoggedIn.class);
+                                intent.putExtra("USERNAME", username);
+                                intent.putExtra("LAB_NAME", labName);
+                                intent.putExtra("PC_NAME", pcUnit);
+                                intent.putExtra("ACCOUNT_ID", accountId);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(SelectPC2.this, "Failed to log in to PC. Please try again.", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(SelectPC2.this, "Error: User account not found", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(SelectPC2.this, "This PC is currently " + currentStatus, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
@@ -94,35 +114,27 @@ public class SelectPC2 extends AppCompatActivity {
         setupBottomNavigation();
     }
 
-    private void setupBottomNavigation() {
-        ImageView homeIcon = findViewById(R.id.homeIcon);
-        ImageView issueIcon = findViewById(R.id.issueIcon);
-        ImageView profileIcon = findViewById(R.id.profileIcon);
+    @Override
+    protected void setupBottomNavigation() {
+        super.setupBottomNavigation();
 
-        homeIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SelectPC2.this, HomePage.class);
-                startActivity(intent);
-                finish(); // Close this activity when returning to home
+        // Get account ID
+        int accountId = dbHelper.getAccountId(username);
+        
+        // Check if user has an active session
+        String[] activeSession = dbHelper.getActiveSession(accountId);
+        
+        // Find the returnToPCIcon
+        ImageView returnToPCIcon = findViewById(R.id.returnToPCIcon);
+        
+        // Only show the returnToPCIcon if there's an active session
+        if (returnToPCIcon != null) {
+            if (activeSession != null && activeSession[0] != null && activeSession[1] != null) {
+                returnToPCIcon.setVisibility(View.VISIBLE);
+            } else {
+                returnToPCIcon.setVisibility(View.GONE);
             }
-        });
-
-        issueIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SelectPC2.this, IssueAct.class);
-                startActivity(intent);
-            }
-        });
-
-        profileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SelectPC2.this, ProfileActivity.class);
-                startActivity(intent);
-            }
-        });
+        }
     }
 
     @Override

@@ -2,44 +2,75 @@ package com.example.clms;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class LoginHistoryActivity extends BaseActivity {
-    private static final String TAG = "LoginHistoryActivity";
-    private DatabaseHelper dbHelper;
+import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+public class LoggedIn extends BaseActivity {
+    private static final String TAG = "LoggedIn";
     private String username;
+    private String labName;
+    private String pcName;
+    private int accountId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login_history2);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_loggedin2);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         try {
-            // Initialize database helper
-            dbHelper = new DatabaseHelper(this);
+            // Get data from intent
+            Intent intent = getIntent();
+            username = intent.getStringExtra("USERNAME");
+            labName = intent.getStringExtra("LAB_NAME");
+            pcName = intent.getStringExtra("PC_NAME");
+            accountId = intent.getIntExtra("ACCOUNT_ID", -1);
 
-            // Get username from intent
-            username = getIntent().getStringExtra("USERNAME");
-            if (username == null || username.isEmpty()) {
-                Log.e(TAG, "Username not found in intent");
-                Toast.makeText(this, "Error: Username not found", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Received intent extras - Username: " + username + ", Lab: " + labName + ", PC: " + pcName + ", AccountID: " + accountId);
+
+            // Validate intent extras
+            if (username == null || labName == null || pcName == null || accountId == -1) {
+                Log.e(TAG, "Missing required intent extras");
+                Toast.makeText(this, "Error: Missing required information", Toast.LENGTH_SHORT).show();
                 finish();
                 return;
             }
 
+            // Set up the current session info
+            TextView currentSessionInfo = findViewById(R.id.currentSessionInfo);
+            if (currentSessionInfo != null) {
+                currentSessionInfo.setText(pcName);
+            } else {
+                Log.e(TAG, "currentSessionInfo TextView not found");
+            }
+
+            // Set up logout button
+            ImageView logoutButton = findViewById(R.id.logoutButton);
+            if (logoutButton != null) {
+                logoutButton.setOnClickListener(v -> handleLogout());
+            } else {
+                Log.e(TAG, "logoutButton not found");
+            }
+
             // Set up bottom navigation
             setupBottomNavigation();
-
-            // Display login history
-            displayLoginHistory();
 
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate", e);
@@ -50,37 +81,31 @@ public class LoginHistoryActivity extends BaseActivity {
 
     @Override
     protected void setupBottomNavigation() {
-        ImageView homeIcon = findViewById(R.id.homeIcon);
-        ImageView issueIcon = findViewById(R.id.issueIcon);
-        ImageView profileIcon = findViewById(R.id.profileIcon);
+        super.setupBottomNavigation();
+        
+        // Since we're in the LoggedIn activity, we don't need the return to PC button
+        ImageView returnToPCIcon = findViewById(R.id.returnToPCIcon);
+        if (returnToPCIcon != null) {
+            returnToPCIcon.setVisibility(View.GONE);
+        }
+    }
 
-        homeIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginHistoryActivity.this, HomePage.class);
+    private void handleLogout() {
+        try {
+            if (dbHelper.logOutFromPC(accountId, labName, pcName)) {
+                Toast.makeText(this, "Successfully logged out", Toast.LENGTH_SHORT).show();
+                // Return to HomePage
+                Intent intent = new Intent(LoggedIn.this, HomePage.class);
                 intent.putExtra("USERNAME", username);
                 startActivity(intent);
                 finish();
+            } else {
+                Toast.makeText(this, "Failed to log out", Toast.LENGTH_SHORT).show();
             }
-        });
-
-        issueIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginHistoryActivity.this, IssueAct.class);
-                intent.putExtra("USERNAME", username);
-                startActivity(intent);
-            }
-        });
-
-        profileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LoginHistoryActivity.this, ProfileActivity.class);
-                intent.putExtra("USERNAME", username);
-                startActivity(intent);
-            }
-        });
+        } catch (Exception e) {
+            Log.e(TAG, "Error during logout", e);
+            Toast.makeText(this, "Error during logout", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void displayLoginHistory() {
@@ -111,10 +136,6 @@ public class LoginHistoryActivity extends BaseActivity {
 
                         while (cursor.moveToNext()) {
                             TableRow row = new TableRow(this);
-                            // Set alternating row backgrounds
-                            row.setBackgroundResource(cursor.getPosition() % 2 == 0 ? 
-                                android.R.color.white : R.color.light_gray);
-                            row.setPadding(0, 8, 0, 8);
 
                             // Add cells to the row
                             addCell(row, cursor.getString(labIndex));
@@ -145,8 +166,6 @@ public class LoginHistoryActivity extends BaseActivity {
         TextView textView = new TextView(this);
         textView.setText(text != null ? text : "");
         textView.setPadding(10, 10, 10, 10);
-        textView.setTextColor(Color.BLACK);
-        textView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(textView);
     }
 

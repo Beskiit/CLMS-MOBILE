@@ -148,13 +148,22 @@
             android:contentDescription="Home" />
 
         <ImageView
+            android:id="@+id/returnToPCIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/computers"
+            android:tint="@color/white"
+            android:contentDescription="Return to PC" />
+
+        <ImageView
             android:id="@+id/issueIcon"
             android:layout_width="0dp"
             android:layout_height="32dp"
             android:layout_weight="1"
             android:src="@drawable/imageissue"
             android:tint="@color/white"
-            android:contentDescription="History" />
+            android:contentDescription="Issue" />
 
         <ImageView
             android:id="@+id/profileIcon"

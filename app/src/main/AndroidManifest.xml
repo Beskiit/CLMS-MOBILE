@@ -25,7 +25,7 @@
             android:name=".SelectPC2"
             android:exported="false" />
         <activity
-            android:name=".Loggedin"
+            android:name=".LoggedIn"
             android:exported="false" />
         <activity
             android:name=".IssueAct"

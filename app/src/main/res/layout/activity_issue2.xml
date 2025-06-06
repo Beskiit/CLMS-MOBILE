@@ -45,18 +45,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Computer Lab:"
-            android:textColor="#000000"
+            android:textColor="#666666"
+            android:textSize="14sp"
             android:layout_marginBottom="8dp"/>
 
         <Spinner
             android:id="@+id/labSpinner"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginHorizontal="32dp"
-            android:background="@drawable/custom_spinner_background"
+            android:background="@drawable/borderless_spinner_background"
             android:popupBackground="@android:color/white"
             android:dropDownWidth="match_parent"
             android:spinnerMode="dropdown"
+            android:paddingStart="0dp"
+            android:paddingEnd="12dp"
             android:layout_marginBottom="16dp"/>
 
         <!-- PC Number Field -->
@@ -64,38 +66,44 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PC Number:"
-            android:textColor="#000000"
+            android:textColor="#666666"
+            android:textSize="14sp"
             android:layout_marginBottom="8dp"/>
 
         <Spinner
             android:id="@+id/pcSpinner"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginHorizontal="32dp"
-            android:background="@drawable/custom_spinner_background"
+            android:background="@drawable/borderless_spinner_background"
             android:popupBackground="@android:color/white"
             android:dropDownWidth="match_parent"
             android:spinnerMode="dropdown"
+            android:paddingStart="0dp"
+            android:paddingEnd="12dp"
             android:layout_marginBottom="16dp"/>
 
-        <!-- Issue Type Field -->
+        <!-- Issue Description Field -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Issue Type:"
-            android:textColor="#000000"
+            android:text="Issue Description:"
+            android:textColor="#666666"
+            android:textSize="14sp"
             android:layout_marginBottom="8dp"/>
 
         <EditText
-            android:id="@+id/issueTypeInput"
+            android:id="@+id/issueDescription"
             android:layout_width="match_parent"
-            android:layout_height="96dp"
-            android:background="@drawable/bordered_button"
-            android:padding="8dp"
-            android:textColor="@color/black"
+            android:layout_height="120dp"
+            android:background="@drawable/borderless_spinner_background"
+            android:padding="12dp"
+            android:textColor="#333333"
+            android:textSize="16sp"
             android:gravity="top"
             android:inputType="textMultiLine"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="24dp"
+            android:hint="Describe the issue here..."
+            android:textColorHint="#999999"/>
 
         <!-- Add Issue Button -->
         <Button
@@ -125,6 +133,15 @@
             android:src="@drawable/home"
             android:tint="@color/white"
             android:contentDescription="Home" />
+
+        <ImageView
+            android:id="@+id/returnToPCIcon"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:src="@drawable/computers"
+            android:tint="@color/white"
+            android:contentDescription="Return to PC" />
 
         <ImageView
             android:id="@+id/issueIcon"
