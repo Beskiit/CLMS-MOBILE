@@ -1096,12 +1096,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor = db.rawQuery("PRAGMA table_info(" + TABLE_ACCOUNT + ")", null);
             Log.d(TAG, "Account table structure:");
             while (cursor.moveToNext()) {
-                String columnName = cursor.getString(cursor.getColumnIndex("name"));
-                String columnType = cursor.getString(cursor.getColumnIndex("type"));
-                Log.d(TAG, "Column: " + columnName + ", Type: " + columnType);
+                int nameIndex = cursor.getColumnIndex("name");
+                int typeIndex = cursor.getColumnIndex("type");
+                
+                if (nameIndex != -1 && typeIndex != -1) {
+                    String columnName = cursor.getString(nameIndex);
+                    String columnType = cursor.getString(typeIndex);
+                    Log.d(TAG, "Column: " + columnName + ", Type: " + columnType);
+                } else {
+                    Log.e(TAG, "Required column indices not found - nameIndex: " + nameIndex + ", typeIndex: " + typeIndex);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Error verifying database structure: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             if (cursor != null) {
                 cursor.close();
