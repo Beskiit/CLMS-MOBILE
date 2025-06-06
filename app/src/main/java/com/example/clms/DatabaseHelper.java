@@ -5,9 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 import android.util.Base64;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -19,7 +23,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
     private static final String DATABASE_NAME = "CLMS.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 6;
     private final Context context;
 
     // Table Names
@@ -41,6 +45,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_ACCOUNT_CREATED = "account_created";
     public static final String COLUMN_ROLE = "role";
     public static final String COLUMN_IS_ARCHIVED = "isArchived";
+    public static final String COLUMN_EMAIL = "email";
+    public static final String COLUMN_PICTURE_PATH = "picture_path";
 
     // Computer Table Columns
     public static final String COLUMN_LABORATORY_NAME = "laboratory_name";
@@ -71,6 +77,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             + COLUMN_USERNAME + " TEXT UNIQUE,"
             + COLUMN_PASSWORD + " TEXT,"
             + COLUMN_COURSE + " TEXT,"
+            + COLUMN_EMAIL + " TEXT,"
+            + COLUMN_PICTURE_PATH + " TEXT,"
             + COLUMN_ACCOUNT_CREATED + " DATETIME,"
             + COLUMN_ROLE + " TEXT,"
             + COLUMN_IS_ARCHIVED + " INTEGER DEFAULT 0"
@@ -136,22 +144,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             // Enable foreign key support
             db.execSQL("PRAGMA foreign_keys = ON;");
+            Log.d(TAG, "Foreign key support enabled");
             
-            // Creating required tables
+            // Drop existing tables if they exist
+            String[] tables = {TABLE_ISSUE, TABLE_ACTIVITY_LOG, TABLE_LOGIN_HISTORY, TABLE_COMPUTER, TABLE_ACCOUNT};
+            for (String table : tables) {
+                db.execSQL("DROP TABLE IF EXISTS " + table);
+                Log.d(TAG, "Dropped table if exists: " + table);
+            }
+            
+            // Create Account table
+            Log.d(TAG, "Creating Account table with query: " + CREATE_TABLE_ACCOUNT);
             db.execSQL(CREATE_TABLE_ACCOUNT);
-            Log.d(TAG, "Account table created successfully");
-            
-            db.execSQL(CREATE_TABLE_COMPUTER);
-            Log.d(TAG, "Computer table created successfully");
-            
-            db.execSQL(CREATE_TABLE_LOGIN_HISTORY);
-            Log.d(TAG, "Login History table created successfully");
-            
-            db.execSQL(CREATE_TABLE_ACTIVITY_LOG);
-            Log.d(TAG, "Activity Log table created successfully");
-            
-            db.execSQL(CREATE_TABLE_ISSUE);
-            Log.d(TAG, "Issue table created successfully");
             
             // Create default admin account
             ContentValues adminValues = new ContentValues();
@@ -162,6 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 byte[] hash = digest.digest("admin123".getBytes("UTF-8"));
                 String hashedPassword = Base64.encodeToString(hash, Base64.DEFAULT);
                 adminValues.put(COLUMN_PASSWORD, hashedPassword);
+                Log.d(TAG, "Created hashed password for admin account");
             } catch (Exception e) {
                 Log.e(TAG, "Error hashing admin password", e);
                 adminValues.put(COLUMN_PASSWORD, "admin123"); // Fallback to plain password if hashing fails
@@ -171,17 +176,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             
             long adminId = db.insert(TABLE_ACCOUNT, null, adminValues);
             Log.d(TAG, "Admin account created with ID: " + adminId);
-            
-            // Initialize computers for each lab
-            if (adminId != -1) {
-                insertComputersForLab(db, "Computer Laboratory A", 40);
-                insertComputersForLab(db, "Computer Laboratory B", 40);
-                insertComputersForLab(db, "Computer Laboratory C", 50);
+
+            // Verify admin account creation
+            Cursor cursor = db.query(TABLE_ACCOUNT, null, null, null, null, null, null);
+            if (cursor != null) {
+                Log.d(TAG, "Account table has " + cursor.getCount() + " rows");
+                if (cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(COLUMN_NAME);
+                    int usernameIndex = cursor.getColumnIndex(COLUMN_USERNAME);
+                    if (nameIndex != -1 && usernameIndex != -1) {
+                        String name = cursor.getString(nameIndex);
+                        String username = cursor.getString(usernameIndex);
+                        Log.d(TAG, "Verified admin account - Name: " + name + ", Username: " + username);
+                    }
+                }
+                cursor.close();
             }
+            
+            // Create other tables
+            Log.d(TAG, "Creating Computer table");
+            db.execSQL(CREATE_TABLE_COMPUTER);
+            
+            Log.d(TAG, "Creating Login History table");
+            db.execSQL(CREATE_TABLE_LOGIN_HISTORY);
+            
+            Log.d(TAG, "Creating Activity Log table");
+            db.execSQL(CREATE_TABLE_ACTIVITY_LOG);
+            
+            Log.d(TAG, "Creating Issue table");
+            db.execSQL(CREATE_TABLE_ISSUE);
+            
+            // Initialize computers
+            insertComputersForLab(db, "Computer Laboratory A", 40);
+            insertComputersForLab(db, "Computer Laboratory B", 40);
+            insertComputersForLab(db, "Computer Laboratory C", 50);
             
             Log.d(TAG, "All tables created successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error creating tables", e);
+            e.printStackTrace();
             throw e;
         }
     }
@@ -190,23 +223,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         Log.d(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
         
-        if (oldVersion < 5) {
-            // Add current_user column to computer table if it doesn't exist
-            try {
-                db.execSQL("ALTER TABLE " + TABLE_COMPUTER + " ADD COLUMN " + COLUMN_CURRENT_USER + " INTEGER");
-                Log.d(TAG, "Added current_user column to computer table");
-            } catch (Exception e) {
-                Log.e(TAG, "Error adding current_user column: " + e.getMessage());
-            }
-        }
-        
         try {
             // Enable foreign key support
             db.execSQL("PRAGMA foreign_keys = OFF;");
 
-            // Backup existing data if needed
-            // For this version, we'll just drop and recreate
-            
             // Drop existing tables
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_ISSUE);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACTIVITY_LOG);
@@ -236,7 +256,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean registerAccount(String name, String course, String username, String password) {
+    public boolean registerAccount(String name, String course, String email, String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -253,6 +273,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Prepare values
             values.put(COLUMN_NAME, name);
             values.put(COLUMN_COURSE, course);
+            values.put(COLUMN_EMAIL, email);
             values.put(COLUMN_USERNAME, username);
             values.put(COLUMN_PASSWORD, hashedPassword);
             values.put(COLUMN_ROLE, "Student");  // Default role
@@ -364,49 +385,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         
         try {
-            // Get the first account_id from Account table
-            Cursor cursor = db.query(
-                TABLE_ACCOUNT,
-                new String[]{COLUMN_ACCOUNT_ID},
-                null,
-                null,
-                null,
-                null,
-                COLUMN_ACCOUNT_ID + " ASC",
-                "1"
-            );
+            // Begin transaction for better performance
+            db.beginTransaction();
 
-            if (cursor.moveToFirst()) {
-                int columnIndex = cursor.getColumnIndex(COLUMN_ACCOUNT_ID);
-                if (columnIndex != -1) {
-                    int accountId = cursor.getInt(columnIndex);
-                    cursor.close();
+            try {
+                // Insert computers for Laboratory A (40 computers)
+                insertComputersForLab(db, "Computer Laboratory A", 40);
 
-                    // Begin transaction for better performance
-                    db.beginTransaction();
+                // Insert computers for Laboratory B (40 computers)
+                insertComputersForLab(db, "Computer Laboratory B", 40);
 
-                    try {
-                        // Insert computers for Laboratory A (40 computers)
-                        insertComputersForLab(db, "Computer Laboratory A", 40);
+                // Insert computers for Laboratory C (50 computers)
+                insertComputersForLab(db, "Computer Laboratory C", 50);
 
-                        // Insert computers for Laboratory B (40 computers)
-                        insertComputersForLab(db, "Computer Laboratory B", 40);
-
-                        // Insert computers for Laboratory C (50 computers)
-                        insertComputersForLab(db, "Computer Laboratory C", 50);
-
-                        // Mark transaction as successful
-                        db.setTransactionSuccessful();
-                        
-                        Log.d(TAG, "Successfully inserted all computer data");
-                    } finally {
-                        // End transaction
-                        db.endTransaction();
-                    }
-                } else {
-                    Log.e(TAG, "COLUMN_ACCOUNT_ID not found in cursor");
-                    cursor.close();
-                }
+                // Mark transaction as successful
+                db.setTransactionSuccessful();
+                
+                Log.d(TAG, "Successfully inserted all computer data");
+            } finally {
+                // End transaction
+                db.endTransaction();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error inserting computer data", e);
@@ -883,5 +881,240 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         
         return sessionInfo;
+    }
+
+    // Method to get user profile data
+    public AccountData getUserProfile(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        AccountData profile = null;
+
+        try {
+            Log.d(TAG, "Getting profile for username: " + username);
+
+            String[] columns = {
+                COLUMN_NAME,
+                COLUMN_COURSE,
+                COLUMN_EMAIL,
+                COLUMN_PICTURE_PATH
+            };
+            String selection = COLUMN_USERNAME + "=?";
+            String[] selectionArgs = {username};
+
+            // First verify if the user exists
+            Cursor checkCursor = db.query(TABLE_ACCOUNT, new String[]{"COUNT(*)"}, selection, selectionArgs, null, null, null);
+            if (checkCursor != null && checkCursor.moveToFirst()) {
+                int count = checkCursor.getInt(0);
+                Log.d(TAG, "Found " + count + " users with username: " + username);
+                checkCursor.close();
+            }
+
+            // Log the query details
+            Log.d(TAG, "Querying table: " + TABLE_ACCOUNT);
+            Log.d(TAG, "Selection: " + selection);
+            Log.d(TAG, "Selection args: " + username);
+
+            Cursor cursor = db.query(
+                TABLE_ACCOUNT,
+                columns,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+            );
+
+            if (cursor != null && cursor.moveToFirst()) {
+                Log.d(TAG, "Found user profile, extracting data...");
+                profile = new AccountData();
+
+                int nameIndex = cursor.getColumnIndex(COLUMN_NAME);
+                int courseIndex = cursor.getColumnIndex(COLUMN_COURSE);
+                int emailIndex = cursor.getColumnIndex(COLUMN_EMAIL);
+                int picturePathIndex = cursor.getColumnIndex(COLUMN_PICTURE_PATH);
+
+                Log.d(TAG, "Column indices - Name: " + nameIndex + ", Course: " + courseIndex + 
+                          ", Email: " + emailIndex + ", PicturePath: " + picturePathIndex);
+
+                if (nameIndex != -1) {
+                    profile.name = cursor.getString(nameIndex);
+                    Log.d(TAG, "Name: " + profile.name);
+                } else {
+                    Log.e(TAG, "Name column not found");
+                }
+
+                if (courseIndex != -1) {
+                    profile.course = cursor.getString(courseIndex);
+                    Log.d(TAG, "Course: " + profile.course);
+                } else {
+                    Log.e(TAG, "Course column not found");
+                }
+
+                if (emailIndex != -1) {
+                    profile.email = cursor.getString(emailIndex);
+                    Log.d(TAG, "Email: " + profile.email);
+                } else {
+                    Log.e(TAG, "Email column not found");
+                }
+                
+                if (picturePathIndex != -1) {
+                    String picturePath = cursor.getString(picturePathIndex);
+                    Log.d(TAG, "Picture path: " + picturePath);
+                    
+                    if (picturePath != null) {
+                        File imageFile = new File(context.getFilesDir(), picturePath);
+                        Log.d(TAG, "Full image path: " + imageFile.getAbsolutePath());
+                        
+                        if (imageFile.exists()) {
+                            Log.d(TAG, "Image file exists, reading...");
+                            profile.picture = getBytesFromFile(imageFile);
+                            Log.d(TAG, "Successfully read image file, size: " + profile.picture.length + " bytes");
+                        } else {
+                            Log.e(TAG, "Image file does not exist: " + imageFile.getAbsolutePath());
+                        }
+                    } else {
+                        Log.d(TAG, "No picture path found for user");
+                    }
+                } else {
+                    Log.e(TAG, "Picture path column not found");
+                }
+            } else {
+                Log.e(TAG, "No user found with username: " + username);
+            }
+
+            if (cursor != null) {
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting user profile: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+
+        if (profile == null) {
+            Log.e(TAG, "Returning null profile");
+        } else {
+            Log.d(TAG, "Successfully loaded profile for user: " + username);
+        }
+        return profile;
+    }
+
+    private byte[] getBytesFromFile(File file) throws IOException {
+        byte[] bytes = new byte[(int) file.length()];
+        try (FileInputStream fis = new FileInputStream(file)) {
+            fis.read(bytes);
+        }
+        return bytes;
+    }
+
+    // Method to update profile picture
+    public boolean updateProfilePicture(String username, byte[] pictureData) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        boolean success = false;
+
+        try {
+            if (username == null || username.isEmpty()) {
+                Log.e(TAG, "Username is null or empty");
+                return false;
+            }
+
+            if (pictureData == null || pictureData.length == 0) {
+                Log.e(TAG, "Picture data is null or empty");
+                return false;
+            }
+
+            // Generate unique filename
+            String fileName = "profile_" + username + "_" + System.currentTimeMillis() + ".jpg";
+            String filePath = context.getFilesDir() + "/" + fileName;
+
+            // Save image to internal storage
+            try (FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE)) {
+                fos.write(pictureData);
+                Log.d(TAG, "Image saved to: " + filePath);
+            } catch (IOException e) {
+                Log.e(TAG, "Error saving image file: " + e.getMessage());
+                return false;
+            }
+
+            // Update database with file path
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_PICTURE_PATH, fileName);
+
+            String whereClause = COLUMN_USERNAME + "=?";
+            String[] whereArgs = {username};
+
+            int rowsAffected = db.update(TABLE_ACCOUNT, values, whereClause, whereArgs);
+            success = rowsAffected > 0;
+
+            if (success) {
+                Log.d(TAG, "Successfully updated profile picture path for user: " + username);
+                
+                // Delete old profile picture if exists
+                Cursor cursor = db.query(TABLE_ACCOUNT,
+                    new String[]{COLUMN_PICTURE_PATH},
+                    whereClause,
+                    whereArgs,
+                    null, null, null);
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    String oldPicturePath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PICTURE_PATH));
+                    if (oldPicturePath != null && !oldPicturePath.equals(fileName)) {
+                        File oldFile = new File(context.getFilesDir(), oldPicturePath);
+                        if (oldFile.exists()) {
+                            oldFile.delete();
+                        }
+                    }
+                }
+                if (cursor != null) {
+                    cursor.close();
+                }
+            } else {
+                // Clean up the saved file if database update failed
+                File file = new File(filePath);
+                if (file.exists()) {
+                    file.delete();
+                }
+                Log.e(TAG, "Failed to update profile picture path in database");
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating profile picture: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            db.close();
+        }
+        
+        return success;
+    }
+
+    // Method to verify database structure
+    public void verifyDatabaseStructure() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            // Check Account table structure
+            cursor = db.rawQuery("PRAGMA table_info(" + TABLE_ACCOUNT + ")", null);
+            Log.d(TAG, "Account table structure:");
+            while (cursor.moveToNext()) {
+                String columnName = cursor.getString(cursor.getColumnIndex("name"));
+                String columnType = cursor.getString(cursor.getColumnIndex("type"));
+                Log.d(TAG, "Column: " + columnName + ", Type: " + columnType);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error verifying database structure: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+    }
+
+    // Data class for Account profile
+    public static class AccountData {
+        public String name;
+        public String course;
+        public String email;
+        public byte[] picture;
     }
 } 
